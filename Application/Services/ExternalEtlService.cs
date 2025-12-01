@@ -1,5 +1,5 @@
-﻿using Application.Interfaces;
-using Application.Services;
+﻿using Application.Dtos;
+using Application.Interfaces;
 using Domain.Models;
 using System.Net.Http.Headers;
 using System.Text;
@@ -7,7 +7,7 @@ using System.Text.Json;
 
 namespace Application.Services
 {
-    // Simple ETL: authenticate, fetch external clients, map and upsert into local DB
+    // ETL simple para obtener clientes de un servicio externo y almacenarlos localmente
     public class ExternalEtlService
     {
         private readonly HttpClient _httpClient;
@@ -21,7 +21,7 @@ namespace Application.Services
 
         public async Task<IEnumerable<Cliente>> RunEtlAsync(CancellationToken cancellationToken = default)
         {
-            // 1. Authenticate
+            // 1. Autenticación
             var loginUrl = "http://gemsa.ddns.net:9132/api/Auth/login";
             var loginBody = new { userName = "Prueba", password = "PruebaRomar" };
             var loginContent = new StringContent(JsonSerializer.Serialize(loginBody), Encoding.UTF8, "application/json");
@@ -39,7 +39,7 @@ namespace Application.Services
             if (string.IsNullOrEmpty(token))
                 return Enumerable.Empty<Cliente>();
 
-            // 2. Get clientes
+            // 2. Obtener clientes externos
             var clientesUrl = "http://gemsa.ddns.net:9132/api/ClientesFacturas/clientes";
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -60,7 +60,7 @@ namespace Application.Services
                 result.Add(mapped);
             }
 
-            // 3. Return local DB clients (fresh)
+            // 3. Retornar todos los clientes locales
             return await _clienteService.GetAllAsync();
         }
 
@@ -68,7 +68,6 @@ namespace Application.Services
         {
             return new Cliente
             {
-                // Assume ext.idcliente maps to nothing in local Id; Upsert uses documento
                 Nombre = ext.nombre ?? string.Empty,
                 Apellido = ext.apellido ?? string.Empty,
                 Documento = ext.documento ?? string.Empty,
@@ -81,22 +80,6 @@ namespace Application.Services
                 CodigoPostal = ext.codigo_postal ?? string.Empty,
                 FechaAlta = ext.fecha_alta ?? DateTime.MinValue
             };
-        }
-
-        private class ExternalCliente
-        {
-            public int idcliente { get; set; }
-            public string? nombre { get; set; }
-            public string? apellido { get; set; }
-            public string? documento { get; set; }
-            public string? tipo_documento { get; set; }
-            public string? email { get; set; }
-            public string? telefono { get; set; }
-            public string? direccion { get; set; }
-            public string? localidad { get; set; }
-            public string? provincia { get; set; }
-            public string? codigo_postal { get; set; }
-            public DateTime? fecha_alta { get; set; }
         }
     }
 }
