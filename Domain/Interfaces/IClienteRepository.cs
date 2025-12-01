@@ -1,11 +1,11 @@
-﻿namespace Domain.Interfaces
+﻿using Domain.Models;
+
+namespace Domain.Interfaces
 {
     public interface IClienteRepository
     {
-        Task<IEnumerable<Models.Cliente>> GetAllClientsAsync();
-        Task<Models.Cliente?> GetClientByIdAsync(int id);
-        Task<int> CreateClientAsync(Models.Cliente client);
-        Task<bool> UpdateClientAsync(Models.Cliente client);
-        Task<bool> DeleteClientAsync(int id);
+        Task<IEnumerable<Cliente>> GetAllAsync();
+        Task<Cliente?> GetByDocumentoAsync(string documento);
+        Task<int> UpsertAsync(Cliente cliente);
     }
 }

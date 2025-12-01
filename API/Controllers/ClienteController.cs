@@ -1,4 +1,5 @@
 ﻿using Application.Interfaces;
+using Application.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,19 +7,22 @@ namespace API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ClienteController : ControllerBase
+    public class ClientesController : ControllerBase
     {
-        private readonly IClienteService _clienteService;
-        public ClienteController(IClienteService clienteService)
+        private readonly IClienteService _service;
+        private readonly ExternalEtlService _etl;
+
+        public ClientesController(IClienteService service, ExternalEtlService etl)
         {
-            _clienteService = clienteService;
+            _service = service;
+            _etl = etl;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllClients()
+        public async Task<IActionResult> GetAll()
         {
-            var clients = await _clienteService.GetAllClientsAsync();
-            return Ok(clients);
+            await _etl.RunEtlAsync();
+            return Ok(await _service.GetAllAsync());
         }
     }
 }

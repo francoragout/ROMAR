@@ -4,10 +4,8 @@ namespace Application.Interfaces
 {
     public interface IClienteService
     {
-        Task<IEnumerable<Cliente>> GetAllClientsAsync();
-        Task<Cliente?> GetClientByIdAsync(int id);
-        Task<int> CreateClientAsync(Cliente client);
-        Task<bool> UpdateClientAsync(Cliente client);
-        Task<bool> DeleteClientAsync(int id);
+        Task<IEnumerable<Cliente>> GetAllAsync();
+        Task<Cliente?> GetByDocumentoAsync(string documento);
+        Task<int> UpsertAsync(Cliente cliente);
     }
 }

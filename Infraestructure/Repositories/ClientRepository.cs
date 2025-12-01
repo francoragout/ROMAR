@@ -14,60 +14,67 @@ namespace Infraestructure.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<Cliente>> GetAllClientsAsync()
+        public async Task<IEnumerable<Cliente>> GetAllAsync()
         {
-            var query = "SELECT * FROM Clientes";
+            var query = "SELECT * FROM Clientes ORDER BY IdCliente";
+
             using var connection = _context.CreateConnection();
-            var clients = await connection.QueryAsync<Cliente>(query);
-            return clients;
+            return await connection.QueryAsync<Cliente>(query);
         }
 
-        public async Task<Cliente?> GetClientByIdAsync(int id)
+        public async Task<Cliente?> GetByDocumentoAsync(string documento)
         {
-            var query = "SELECT * FROM Clientes WHERE IdCliente = @Id";
+
+            var query = "SELECT * FROM Clientes WHERE Documento = @Documento";
+
             using var connection = _context.CreateConnection();
-            var client = await connection.QuerySingleOrDefaultAsync<Cliente>(query, new { Id = id });
-            return client;
+            return await connection.QuerySingleOrDefaultAsync<Cliente>(query, new { Documento = documento });
         }
 
-        public async Task<int> CreateClientAsync(Cliente client)
+        public async Task<int> CreateAsync(Cliente cliente)
         {
-            var query = @"
-                INSERT INTO Clientes (Nombre, Apellido, Documento, TipoDocumento, Email, Telefono, Direccion, Localidad, Provincia, CodigoPostal, FechaAlta)
-                VALUES (@Nombre, @Apellido, @Documento, @TipoDocumento, @Email, @Telefono, @Direccion, @Localidad, @Provincia, @CodigoPostal, @FechaAlta);
-                SELECT CAST(SCOPE_IDENTITY() as int)";
+            var query = @"INSERT INTO Clientes (Nombre, Apellido, Documento, TipoDocumento, Email, Telefono, Direccion, Localidad, Provincia, CodigoPostal, FechaAlta)
+                        VALUES (@Nombre, @Apellido, @Documento, @TipoDocumento, @Email, @Telefono, @Direccion, @Localidad, @Provincia, @CodigoPostal, @FechaAlta);
+                        SELECT CAST(SCOPE_IDENTITY() as int);";
+
             using var connection = _context.CreateConnection();
-            var id = await connection.QuerySingleAsync<int>(query, client);
+            var id = await connection.QuerySingleAsync<int>(query, cliente);
             return id;
         }
-
-        public async Task<bool> UpdateClientAsync(Cliente client)
+        public async Task<int> UpsertAsync(Cliente cliente)
         {
-            var query = @"
-                UPDATE Clientes
-                SET Nombre = @Nombre,
-                    Apellido = @Apellido,
-                    Documento = @Documento,
-                    TipoDocumento = @TipoDocumento,
-                    Email = @Email,
-                    Telefono = @Telefono,
-                    Direccion = @Direccion,
-                    Localidad = @Localidad,
-                    Provincia = @Provincia,
-                    CodigoPostal = @CodigoPostal,
-                    FechaAlta = @FechaAlta
-                WHERE IdCliente = @IdCliente";
-            using var connection = _context.CreateConnection();
-            var affectedRows = await connection.ExecuteAsync(query, client);
-            return affectedRows > 0;
+            var existing = await GetByDocumentoAsync(cliente.Documento);
+            if (existing == null)
+            {
+                return await CreateAsync(cliente);
+            }
+            else
+            {
+                cliente.IdCliente = existing.IdCliente;
+                await UpdateAsync(cliente);
+                return cliente.IdCliente;
+            }
         }
 
-        public async Task<bool> DeleteClientAsync(int id)
+        public async Task<bool> UpdateAsync(Cliente cliente)
         {
-            var query = "DELETE FROM Clientes WHERE IdCliente = @Id";
+            var query = @"UPDATE Clientes SET
+                            Nombre = @Nombre,
+                            Apellido = @Apellido,
+                            Documento = @Documento,
+                            TipoDocumento = @TipoDocumento,
+                            Email = @Email,
+                            Telefono = @Telefono,
+                            Direccion = @Direccion,
+                            Localidad = @Localidad,
+                            Provincia = @Provincia,
+                            CodigoPostal = @CodigoPostal,
+                            FechaAlta = @FechaAlta
+                         WHERE IdCliente = @IdCliente";
+
             using var connection = _context.CreateConnection();
-            var affectedRows = await connection.ExecuteAsync(query, new { Id = id });
-            return affectedRows > 0;
+            var rows = await connection.ExecuteAsync(query, cliente);
+            return rows > 0;
         }
     }
 }

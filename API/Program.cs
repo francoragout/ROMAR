@@ -12,6 +12,7 @@ builder.Services.AddSingleton<DapperContext>();
 // Register repositories and services
 builder.Services.AddScoped<IClienteRepository, ClientRepository>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
+builder.Services.AddHttpClient<ExternalEtlService>();
 
 // Add services to the container.
 builder.Services.AddControllers();

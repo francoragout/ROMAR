@@ -13,29 +13,17 @@ namespace Application.Services
             _repository = repository;
         }
 
-        public async Task<IEnumerable<Cliente>> GetAllClientsAsync()
+        public async Task<IEnumerable<Cliente>> GetAllAsync()
         {
-            return await _repository.GetAllClientsAsync();
+            return await _repository.GetAllAsync();
         }
-
-        public async Task<Cliente?> GetClientByIdAsync(int id)
+        public async Task<Cliente?> GetByDocumentoAsync(string documento)
         {
-            return await _repository.GetClientByIdAsync(id);
+            return await _repository.GetByDocumentoAsync(documento);
         }
-
-        public async Task<int> CreateClientAsync(Cliente client)
+        public async Task<int> UpsertAsync(Cliente cliente)
         {
-            return await _repository.CreateClientAsync(client);
-        }
-
-        public async Task<bool> UpdateClientAsync(Cliente client)
-        {
-            return await _repository.UpdateClientAsync(client);
-        }
-
-        public async Task<bool> DeleteClientAsync(int id)
-        {
-            return await _repository.DeleteClientAsync(id);
+            return await _repository.UpsertAsync(cliente);
         }
     }
 }
