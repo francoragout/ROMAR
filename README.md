@@ -21,3 +21,16 @@ Este documento explica de forma concisa cómo está organizada y cómo fluye la 
 - Inversión de dependencias: las capas superiores dependen de interfaces del `Domain` y las implementaciones concretas se registran en `API/Program.cs`.
 - Acceso a datos: `Infraestructure` usa `DapperContext` para manejar la conexión y las consultas SQL.
 - Configuración: cadenas de conexión y ajustes están en `API/appsettings.json`.
+
+## Inyección de dependencias (DI) y lifetimes usados
+En ASP.NET Core se registran servicios en un contenedor DI con distintos "lifetimes". Los principales son:
+
+- `AddSingleton<T>()` — una única instancia para toda la aplicación. Se crea una vez y se reutiliza en todas las peticiones y hilos.
+- `AddScoped<T>()` — una instancia por petición HTTP. Útil para dependencias que deben vivir durante la vida de una petición.
+- `AddTransient<T>()` — nueva instancia cada vez que se solicita. Para objetos livianos y sin estado.
+
+### Qué usa esta solución (revisar `API/Program.cs`)
+- `DapperContext` está registrado como `AddSingleton<DapperContext>()`.
+- `IClienteRepository` → `ClientRepository` registrado como `AddScoped<IClienteRepository, ClientRepository>()`.
+- `IClienteService` → `ClienteService` registrado como `AddScoped<IClienteService, ClienteService>()`.
+- `ExternalEtlService` está registrado con `AddHttpClient<ExternalEtlService>()` (cliente HTTP tipado gestionado por `IHttpClientFactory`).
